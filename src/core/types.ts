@@ -36,14 +36,14 @@ export interface Eip6963ProviderDetail {
 
 export interface Eip6963AnnounceProviderEvent
   extends CustomEvent<Eip6963ProviderDetail> {
-  type: 'eip6963:announceProvider';
+  type: "eip6963:announceProvider";
 }
 
 export type WalletStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'reconnecting'
-  | 'connected';
+  | "disconnected"
+  | "connecting"
+  | "reconnecting"
+  | "connected";
 
 /**
  * Immutable snapshot of connector state. A new object reference is produced

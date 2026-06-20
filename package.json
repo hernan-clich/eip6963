@@ -49,7 +49,12 @@
     "build": "tsup && node scripts/postbuild.mjs",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint": "biome lint src",
+    "format": "biome format --write src",
+    "format:check": "biome format src",
+    "check": "biome check src",
+    "check:fix": "biome check --write src"
   },
   "peerDependencies": {
     "react": ">=18"
@@ -60,6 +65,7 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "@types/react": "^19.0.0",
     "react": "^19.0.0",
     "tsup": "^8.3.5",

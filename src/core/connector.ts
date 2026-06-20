@@ -6,19 +6,19 @@ import {
   isBrowser,
   onAnnounce,
   requestProviders,
-} from './discovery';
+} from "./discovery";
 import {
-  clearStoredWallet,
   type ConnectorStorage,
+  clearStoredWallet,
   defaultStorage,
   readStoredWallet,
   writeStoredWallet,
-} from './storage';
+} from "./storage";
 import type {
   ConnectResult,
   Eip6963ProviderDetail,
   WalletState,
-} from './types';
+} from "./types";
 
 export interface ConnectorConfig {
   /**
@@ -36,26 +36,26 @@ export interface ConnectorConfig {
   autoConnect?: boolean;
 }
 
-const DEFAULT_KEY = 'eip6963.wallet';
+const DEFAULT_KEY = "eip6963.wallet";
 
 const INITIAL_STATE: WalletState = {
-  providers: [],
-  status: 'disconnected',
-  activeProvider: null,
   account: null,
+  activeProvider: null,
   chainId: null,
   error: null,
+  providers: [],
+  status: "disconnected",
 };
 
 const toError = (value: unknown): Error =>
   value instanceof Error ? value : new Error(String(value));
 
 const parseChainId = (value: unknown): number | null => {
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     const n = Number(value);
     return Number.isNaN(n) ? null : n;
   }
-  if (typeof value === 'number') return value;
+  if (typeof value === "number") return value;
   return null;
 };
 
@@ -68,9 +68,7 @@ export interface Connector {
    * Connect to a wallet, identified by its provider detail or stable `rdns`.
    * Prompts the user via `eth_requestAccounts`.
    */
-  connect: (
-    target: Eip6963ProviderDetail | string
-  ) => Promise<ConnectResult>;
+  connect: (target: Eip6963ProviderDetail | string) => Promise<ConnectResult>;
   /** Disconnect locally and forget the persisted wallet. */
   disconnect: () => void;
   /** Request the wallet switch to `chainId` (decimal). */
@@ -87,7 +85,7 @@ export interface Connector {
 export const createConnector = (config: ConnectorConfig = {}): Connector => {
   const storage: ConnectorStorage =
     config.storage === null
-      ? { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+      ? { getItem: () => null, removeItem: () => {}, setItem: () => {} }
       : (config.storage ?? defaultStorage());
   const storageKey = config.storageKey ?? DEFAULT_KEY;
   const autoConnect = config.autoConnect ?? true;
@@ -137,11 +135,11 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
       setState({ chainId: parseChainId(args[0]) });
     };
 
-    provider.on('accountsChanged', onAccounts);
-    provider.on('chainChanged', onChain);
+    provider.on("accountsChanged", onAccounts);
+    provider.on("chainChanged", onChain);
     providerCleanup = () => {
-      provider.removeListener?.('accountsChanged', onAccounts);
-      provider.removeListener?.('chainChanged', onChain);
+      provider.removeListener?.("accountsChanged", onAccounts);
+      provider.removeListener?.("chainChanged", onChain);
     };
   };
 
@@ -149,7 +147,7 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
   const syncState = async (detail: Eip6963ProviderDetail) => {
     try {
       const chainId = parseChainId(
-        await detail.provider.request({ method: 'eth_chainId' })
+        await detail.provider.request({ method: "eth_chainId" })
       );
       setState({ chainId });
     } catch {
@@ -163,51 +161,49 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     target: Eip6963ProviderDetail | string
   ): Promise<ConnectResult> => {
     const detail =
-      typeof target === 'string'
-        ? findByRdns(state.providers, target)
-        : target;
+      typeof target === "string" ? findByRdns(state.providers, target) : target;
 
     if (!detail) {
       const error = new Error(
-        typeof target === 'string'
+        typeof target === "string"
           ? `No wallet found with rdns "${target}"`
-          : 'Invalid wallet provider'
+          : "Invalid wallet provider"
       );
-      setState({ error, status: 'disconnected' });
-      return { success: false, error };
+      setState({ error, status: "disconnected" });
+      return { error, success: false };
     }
 
-    setState({ status: 'connecting', error: null });
+    setState({ error: null, status: "connecting" });
     try {
       const accounts = (await detail.provider.request({
-        method: 'eth_requestAccounts',
+        method: "eth_requestAccounts",
       })) as string[];
 
       if (!accounts || accounts.length === 0) {
-        const error = new Error('Wallet returned no accounts');
-        setState({ status: 'disconnected', error });
-        return { success: false, error };
+        const error = new Error("Wallet returned no accounts");
+        setState({ error, status: "disconnected" });
+        return { error, success: false };
       }
 
       bindProvider(detail);
       setState({
-        status: 'connected',
-        activeProvider: detail,
         account: accounts[0],
+        activeProvider: detail,
         error: null,
+        status: "connected",
       });
       writeStoredWallet(storage, storageKey, {
         account: accounts[0],
-        uuid: detail.info.uuid,
         name: detail.info.name,
         rdns: detail.info.rdns,
+        uuid: detail.info.uuid,
       });
       void syncState(detail);
-      return { success: true, account: accounts[0] };
+      return { account: accounts[0], success: true };
     } catch (err) {
       const error = toError(err);
-      setState({ status: 'disconnected', error });
-      return { success: false, error };
+      setState({ error, status: "disconnected" });
+      return { error, success: false };
     }
   };
 
@@ -215,21 +211,21 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     unbindProvider();
     clearStoredWallet(storage, storageKey);
     setState({
-      status: 'disconnected',
-      activeProvider: null,
       account: null,
+      activeProvider: null,
       chainId: null,
+      status: "disconnected",
     });
   };
 
   const switchChain = async (chainId: number) => {
     if (!state.activeProvider) {
-      throw new Error('No wallet connected');
+      throw new Error("No wallet connected");
     }
     setState({ error: null });
     try {
       await state.activeProvider.provider.request({
-        method: 'wallet_switchEthereumChain',
+        method: "wallet_switchEthereumChain",
         params: [{ chainId: `0x${chainId.toString(16)}` }],
       });
       // chainChanged will update state; set optimistically as a fallback.
@@ -247,7 +243,7 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     const stored = readStoredWallet(storage, storageKey);
     if (!stored) return;
 
-    setState({ status: 'reconnecting' });
+    setState({ status: "reconnecting" });
 
     const detail =
       findByUuid(state.providers, stored.uuid) ??
@@ -258,13 +254,13 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     if (!detail) {
       // Provider not (yet) present; stay disconnected without clearing —
       // discovery may announce it later and a future reconnect can match.
-      if (state.status === 'reconnecting') setState({ status: 'disconnected' });
+      if (state.status === "reconnecting") setState({ status: "disconnected" });
       return;
     }
 
     try {
       const accounts = (await detail.provider.request({
-        method: 'eth_accounts',
+        method: "eth_accounts",
       })) as string[];
 
       const match = accounts?.some(
@@ -274,19 +270,19 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
       if (match) {
         bindProvider(detail);
         setState({
-          status: 'connected',
-          activeProvider: detail,
           account: accounts[0],
+          activeProvider: detail,
+          status: "connected",
         });
         void syncState(detail);
       } else {
         // Authorization was revoked in the wallet.
         clearStoredWallet(storage, storageKey);
-        setState({ status: 'disconnected' });
+        setState({ status: "disconnected" });
       }
     } catch {
       // Transient error — keep stored data, just stay disconnected.
-      if (state.status === 'reconnecting') setState({ status: 'disconnected' });
+      if (state.status === "reconnecting") setState({ status: "disconnected" });
     }
   };
 
@@ -299,7 +295,11 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     stopAnnounce = onAnnounce((detail) => {
       addProvider(detail);
       // Try reconnect once the wallets start showing up.
-      if (autoConnect && !didAttemptReconnect && readStoredWallet(storage, storageKey)) {
+      if (
+        autoConnect &&
+        !didAttemptReconnect &&
+        readStoredWallet(storage, storageKey)
+      ) {
         didAttemptReconnect = true;
         void reconnect();
       }
@@ -322,5 +322,5 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     listeners.clear();
   };
 
-  return { getState, subscribe, connect, disconnect, switchChain, destroy };
+  return { connect, destroy, disconnect, getState, subscribe, switchChain };
 };

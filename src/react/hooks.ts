@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useContext, useSyncExternalStore } from 'react';
+import { useContext, useSyncExternalStore } from "react";
 
 import type {
   Connector,
   Eip6963ProviderDetail,
   WalletState,
   WalletStatus,
-} from '../core';
-import { ConnectorContext } from './context';
+} from "../core";
+import { ConnectorContext } from "./context";
 
 /** Access the underlying connector instance. Throws outside a WalletProvider. */
 export const useConnector = (): Connector => {
   const connector = useContext(ConnectorContext);
   if (!connector) {
-    throw new Error('useConnector must be used within a <WalletProvider>');
+    throw new Error("useConnector must be used within a <WalletProvider>");
   }
   return connector;
 };
@@ -30,9 +30,9 @@ export const useWalletState = (): WalletState => {
 };
 
 export interface UseWalletReturn extends WalletState {
-  connect: Connector['connect'];
-  disconnect: Connector['disconnect'];
-  switchChain: Connector['switchChain'];
+  connect: Connector["connect"];
+  disconnect: Connector["disconnect"];
+  switchChain: Connector["switchChain"];
   /** Convenience flag: `status === 'connected'`. */
   isConnected: boolean;
   /** Convenience flag: `status === 'connecting' || 'reconnecting'`. */
@@ -47,10 +47,10 @@ export const useWallet = (): UseWalletReturn => {
     ...state,
     connect: connector.connect,
     disconnect: connector.disconnect,
-    switchChain: connector.switchChain,
-    isConnected: state.status === 'connected',
+    isConnected: state.status === "connected",
     isConnecting:
-      state.status === 'connecting' || state.status === 'reconnecting',
+      state.status === "connecting" || state.status === "reconnecting",
+    switchChain: connector.switchChain,
   };
 };
 
@@ -72,19 +72,19 @@ export const useWalletStatus = (): {
 } => {
   const { status } = useWalletState();
   return {
+    isConnected: status === "connected",
+    isConnecting: status === "connecting" || status === "reconnecting",
     status,
-    isConnected: status === 'connected',
-    isConnecting: status === 'connecting' || status === 'reconnecting',
   };
 };
 
 /** The connect action (stable reference). */
-export const useConnect = (): Connector['connect'] => useConnector().connect;
+export const useConnect = (): Connector["connect"] => useConnector().connect;
 
 /** The disconnect action (stable reference). */
-export const useDisconnect = (): Connector['disconnect'] =>
+export const useDisconnect = (): Connector["disconnect"] =>
   useConnector().disconnect;
 
 /** The switchChain action (stable reference). */
-export const useSwitchChain = (): Connector['switchChain'] =>
+export const useSwitchChain = (): Connector["switchChain"] =>
   useConnector().switchChain;

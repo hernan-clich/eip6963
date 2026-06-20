@@ -1,4 +1,4 @@
-import { isBrowser } from './discovery';
+import { isBrowser } from "./discovery";
 
 /** Identifiers persisted so a wallet can be re-matched on reload. */
 export interface StoredWallet {
@@ -21,16 +21,16 @@ export interface ConnectorStorage {
 /** A no-op store used during SSR or when persistence is disabled. */
 export const noopStorage: ConnectorStorage = {
   getItem: () => null,
-  setItem: () => {},
   removeItem: () => {},
+  setItem: () => {},
 };
 
 /** Returns `localStorage` when usable, otherwise the no-op store. */
 export const defaultStorage = (): ConnectorStorage => {
   if (!isBrowser()) return noopStorage;
   try {
-    const test = '__eip6963_test__';
-    window.localStorage.setItem(test, '1');
+    const test = "__eip6963_test__";
+    window.localStorage.setItem(test, "1");
     window.localStorage.removeItem(test);
     return window.localStorage;
   } catch {
@@ -47,7 +47,7 @@ export const readStoredWallet = (
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<StoredWallet>;
-    if (parsed && typeof parsed.account === 'string') {
+    if (parsed && typeof parsed.account === "string") {
       return parsed as StoredWallet;
     }
   } catch {

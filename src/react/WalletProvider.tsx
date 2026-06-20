@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from "react";
 
-import { type ConnectorConfig, createConnector } from '../core';
-import { ConnectorContext } from './context';
+import { type ConnectorConfig, createConnector } from "../core";
+import { ConnectorContext } from "./context";
 
 export interface WalletProviderProps extends ConnectorConfig {
   children: ReactNode;
@@ -21,7 +21,7 @@ export const WalletProvider = ({
   autoConnect,
 }: WalletProviderProps) => {
   const [connector] = useState(() =>
-    createConnector({ storage, storageKey, autoConnect })
+    createConnector({ autoConnect, storage, storageKey })
   );
 
   useEffect(() => connector.destroy, [connector]);

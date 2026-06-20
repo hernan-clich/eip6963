@@ -1,5 +1,5 @@
-export { createConnector } from './connector';
-export type { Connector, ConnectorConfig } from './connector';
+export type { Connector, ConnectorConfig } from "./connector";
+export { createConnector } from "./connector";
 export {
   findByAccount,
   findByName,
@@ -8,13 +8,13 @@ export {
   isBrowser,
   onAnnounce,
   requestProviders,
-} from './discovery';
+} from "./discovery";
 export {
   type ConnectorStorage,
   defaultStorage,
   noopStorage,
   type StoredWallet,
-} from './storage';
+} from "./storage";
 export type {
   ConnectResult,
   Eip1193Provider,
@@ -23,4 +23,4 @@ export type {
   Eip6963ProviderInfo,
   WalletState,
   WalletStatus,
-} from './types';
+} from "./types";

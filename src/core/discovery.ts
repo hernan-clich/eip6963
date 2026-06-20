@@ -1,11 +1,11 @@
 import type {
   Eip6963AnnounceProviderEvent,
   Eip6963ProviderDetail,
-} from './types';
+} from "./types";
 
 /** True when running in a browser with the APIs EIP-6963 needs. */
 export const isBrowser = (): boolean =>
-  typeof window !== 'undefined' && typeof window.dispatchEvent === 'function';
+  typeof window !== "undefined" && typeof window.dispatchEvent === "function";
 
 /**
  * Ask installed wallets to (re-)announce themselves. Wallets respond by
@@ -14,7 +14,7 @@ export const isBrowser = (): boolean =>
  */
 export const requestProviders = (): void => {
   if (!isBrowser()) return;
-  window.dispatchEvent(new Event('eip6963:requestProvider'));
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
 };
 
 /**
@@ -29,8 +29,8 @@ export const onAnnounce = (
     handler((event as Eip6963AnnounceProviderEvent).detail);
   };
 
-  window.addEventListener('eip6963:announceProvider', listener);
-  return () => window.removeEventListener('eip6963:announceProvider', listener);
+  window.addEventListener("eip6963:announceProvider", listener);
+  return () => window.removeEventListener("eip6963:announceProvider", listener);
 };
 
 /** Find a discovered provider by its (per-load) uuid. */
@@ -66,7 +66,7 @@ export const findByAccount = async (
   for (const provider of providers) {
     try {
       const accounts = (await provider.provider.request({
-        method: 'eth_accounts',
+        method: "eth_accounts",
       })) as string[];
       if (accounts?.some((a) => a.toLowerCase() === target)) {
         return provider;
