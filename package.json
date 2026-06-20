@@ -1,0 +1,60 @@
+{
+  "name": "eip6963",
+  "version": "0.1.0",
+  "description": "Dependency-free EVM wallet connector using native browser APIs (EIP-6963 / EIP-1193). Vanilla core + optional React hooks.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Hernan",
+  "keywords": [
+    "eip6963",
+    "eip1193",
+    "ethereum",
+    "evm",
+    "wallet",
+    "wallet-connector",
+    "web3",
+    "react",
+    "metamask",
+    "injected"
+  ],
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "require": "./dist/react/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup && node scripts/postbuild.mjs",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.0"
+  }
+}
