@@ -4,7 +4,15 @@
   "description": "Dependency-free EVM wallet connector using native browser APIs (EIP-6963 / EIP-1193). Vanilla core + optional React hooks.",
   "type": "module",
   "license": "MIT",
-  "author": "Hernan",
+  "author": "Hernan Clich",
+  "homepage": "https://github.com/hernan-clich/eip6963#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hernan-clich/eip6963.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hernan-clich/eip6963/issues"
+  },
   "keywords": [
     "eip6963",
     "eip1193",
