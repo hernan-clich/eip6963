@@ -1,6 +1,6 @@
 {
   "name": "eip6963",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Dependency-free EVM wallet connector using native browser APIs (EIP-6963 / EIP-1193). Vanilla core + optional React hooks.",
   "type": "module",
   "license": "MIT",
