@@ -119,6 +119,14 @@ const client = createWalletClient({
 });
 ```
 
+> **No cast needed.** `activeProvider.provider` is a standard EIP-1193 provider
+> and is structurally assignable to ethers' `Eip1193Provider` and viem's
+> `custom()` transport exactly as shown above — you do **not** need `as any` or
+> `as never`. If your editor flags a type error here, it's almost always a stale
+> TS server (restart it: in VS Code, "TypeScript: Restart TS Server"). Avoid
+> reaching for `as never` to silence it — that turns off type checking for the
+> whole expression and will hide real mistakes later.
+
 ## Switching chains (and adding unknown ones)
 
 `switchChain(chainId)` calls `wallet_switchEthereumChain`. If the wallet doesn't
