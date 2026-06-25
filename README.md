@@ -107,15 +107,20 @@ raw EIP-1193 provider so you can use whatever you like:
 import { ethers } from 'ethers';
 
 const { activeProvider } = connector.getState();
-const browserProvider = new ethers.BrowserProvider(activeProvider!.provider);
+if (!activeProvider) throw new Error('No wallet connected');
+
+const browserProvider = new ethers.BrowserProvider(activeProvider.provider);
 const signer = await browserProvider.getSigner();
 ```
 
 ```ts
 import { createWalletClient, custom } from 'viem';
 
+const { activeProvider } = connector.getState();
+if (!activeProvider) throw new Error('No wallet connected');
+
 const client = createWalletClient({
-  transport: custom(activeProvider!.provider),
+  transport: custom(activeProvider.provider),
 });
 ```
 
