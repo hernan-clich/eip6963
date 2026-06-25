@@ -1,3 +1,5 @@
+import type { WalletError } from "./errors";
+
 /**
  * Minimal EIP-1193 provider surface this library relies on.
  * @see https://eips.ethereum.org/EIPS/eip-1193
@@ -34,6 +36,20 @@ export interface Eip6963ProviderDetail {
   provider: Eip1193Provider;
 }
 
+/**
+ * Parameters for adding a chain the wallet doesn't yet know about, per
+ * EIP-3085 (`wallet_addEthereumChain`). `chainId` is supplied by
+ * {@link Connector.switchChain}, so it's omitted here.
+ * @see https://eips.ethereum.org/EIPS/eip-3085
+ */
+export interface AddEthereumChainParameter {
+  chainName: string;
+  nativeCurrency: { name: string; symbol: string; decimals: number };
+  rpcUrls: string[];
+  blockExplorerUrls?: string[];
+  iconUrls?: string[];
+}
+
 export interface Eip6963AnnounceProviderEvent
   extends CustomEvent<Eip6963ProviderDetail> {
   type: "eip6963:announceProvider";
@@ -60,11 +76,11 @@ export interface WalletState {
   /** Active chain id in decimal, or null when unknown. */
   chainId: number | null;
   /** Last error from connect / switchChain, cleared on the next attempt. */
-  error: Error | null;
+  error: WalletError | null;
 }
 
 export interface ConnectResult {
   success: boolean;
   account?: string | null;
-  error?: Error;
+  error?: WalletError;
 }

@@ -2,6 +2,7 @@
 
 // Re-export core types so React consumers need only one import path.
 export type {
+  AddEthereumChainParameter,
   Connector,
   ConnectorConfig,
   ConnectorStorage,
@@ -13,6 +14,7 @@ export type {
   WalletState,
   WalletStatus,
 } from "../core";
+export { WalletError } from "../core";
 export { ConnectorContext } from "./context";
 export {
   type UseWalletReturn,

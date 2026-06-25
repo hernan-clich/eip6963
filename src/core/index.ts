@@ -9,6 +9,7 @@ export {
   onAnnounce,
   requestProviders,
 } from "./discovery";
+export { toWalletError, WalletError } from "./errors";
 export {
   type ConnectorStorage,
   defaultStorage,
@@ -16,6 +17,7 @@ export {
   type StoredWallet,
 } from "./storage";
 export type {
+  AddEthereumChainParameter,
   ConnectResult,
   Eip1193Provider,
   Eip6963AnnounceProviderEvent,

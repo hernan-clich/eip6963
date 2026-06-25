@@ -119,6 +119,46 @@ const client = createWalletClient({
 });
 ```
 
+## Switching chains (and adding unknown ones)
+
+`switchChain(chainId)` calls `wallet_switchEthereumChain`. If the wallet doesn't
+recognize the chain it rejects with EIP-1193 code `4902` — pass EIP-3085
+add-chain params as the second argument and the connector will add the chain via
+`wallet_addEthereumChain` and retry the switch for you:
+
+```ts
+await switchChain(7000, {
+  chainName: 'ZetaChain Mainnet',
+  nativeCurrency: { name: 'ZETA', symbol: 'ZETA', decimals: 18 },
+  rpcUrls: ['https://zetachain-evm.blockpi.network/v1/rpc/public'],
+  blockExplorerUrls: ['https://zetascan.com'],
+});
+```
+
+Without the second argument, an unknown chain just throws — see error handling
+below.
+
+## Error handling
+
+Failed `connect` / `switchChain` calls reject with a `WalletError` that
+**preserves the provider's `code`** (e.g. `4902` unknown chain, `4001` user
+rejected, `-32002` request already pending) and `data`, so you can branch on it:
+
+```ts
+import { WalletError } from 'eip6963';
+
+try {
+  await switchChain(7000);
+} catch (err) {
+  if (err instanceof WalletError && err.code === 4902) {
+    // chain not in the wallet — prompt to add it, or call switchChain with params
+  }
+}
+```
+
+The same `WalletError` is also exposed as `state.error` (and `useWallet().error`)
+after a failed attempt.
+
 ## How auto-reconnect works
 
 On connect, the wallet's `uuid`, `rdns`, `name`, and `account` are persisted

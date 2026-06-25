@@ -7,6 +7,7 @@ import {
   onAnnounce,
   requestProviders,
 } from "./discovery";
+import { toWalletError, WalletError } from "./errors";
 import {
   type ConnectorStorage,
   clearStoredWallet,
@@ -15,6 +16,7 @@ import {
   writeStoredWallet,
 } from "./storage";
 import type {
+  AddEthereumChainParameter,
   ConnectResult,
   Eip6963ProviderDetail,
   WalletState,
@@ -47,9 +49,6 @@ const INITIAL_STATE: WalletState = {
   status: "disconnected",
 };
 
-const toError = (value: unknown): Error =>
-  value instanceof Error ? value : new Error(String(value));
-
 const parseChainId = (value: unknown): number | null => {
   if (typeof value === "string") {
     const n = Number(value);
@@ -71,8 +70,17 @@ export interface Connector {
   connect: (target: Eip6963ProviderDetail | string) => Promise<ConnectResult>;
   /** Disconnect locally and forget the persisted wallet. */
   disconnect: () => void;
-  /** Request the wallet switch to `chainId` (decimal). */
-  switchChain: (chainId: number) => Promise<void>;
+  /**
+   * Request the wallet switch to `chainId` (decimal). If the wallet doesn't
+   * recognize the chain (EIP-1193 error `4902`) and `addChainParams` are
+   * supplied, the chain is added via `wallet_addEthereumChain` and the switch
+   * is retried. On failure throws a {@link WalletError} carrying the
+   * provider's `code`.
+   */
+  switchChain: (
+    chainId: number,
+    addChainParams?: AddEthereumChainParameter
+  ) => Promise<void>;
   /** Tear down all listeners. Call when the connector is no longer needed. */
   destroy: () => void;
 }
@@ -164,7 +172,7 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
       typeof target === "string" ? findByRdns(state.providers, target) : target;
 
     if (!detail) {
-      const error = new Error(
+      const error = new WalletError(
         typeof target === "string"
           ? `No wallet found with rdns "${target}"`
           : "Invalid wallet provider"
@@ -180,7 +188,7 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
       })) as string[];
 
       if (!accounts || accounts.length === 0) {
-        const error = new Error("Wallet returned no accounts");
+        const error = new WalletError("Wallet returned no accounts");
         setState({ error, status: "disconnected" });
         return { error, success: false };
       }
@@ -201,7 +209,7 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
       void syncState(detail);
       return { account: accounts[0], success: true };
     } catch (err) {
-      const error = toError(err);
+      const error = toWalletError(err, "Failed to connect wallet");
       setState({ error, status: "disconnected" });
       return { error, success: false };
     }
@@ -218,22 +226,53 @@ export const createConnector = (config: ConnectorConfig = {}): Connector => {
     });
   };
 
-  const switchChain = async (chainId: number) => {
+  const switchChain = async (
+    chainId: number,
+    addChainParams?: AddEthereumChainParameter
+  ) => {
     if (!state.activeProvider) {
-      throw new Error("No wallet connected");
+      throw new WalletError("No wallet connected");
     }
+    const { provider } = state.activeProvider;
+    const hexChainId = `0x${chainId.toString(16)}`;
     setState({ error: null });
+
     try {
-      await state.activeProvider.provider.request({
+      await provider.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: `0x${chainId.toString(16)}` }],
+        params: [{ chainId: hexChainId }],
       });
       // chainChanged will update state; set optimistically as a fallback.
       setState({ chainId });
+      return;
     } catch (err) {
-      const error = toError(err);
-      setState({ error });
-      throw error;
+      const error = toWalletError(err, "Failed to switch chain");
+
+      // 4902 = the wallet doesn't recognize the chain. Add it (if the caller
+      // gave us the params) and retry the switch; otherwise surface the error
+      // with its code intact so the caller can decide what to do.
+      if (error.code !== 4902 || !addChainParams) {
+        setState({ error });
+        throw error;
+      }
+
+      try {
+        await provider.request({
+          method: "wallet_addEthereumChain",
+          params: [{ chainId: hexChainId, ...addChainParams }],
+        });
+        // Some wallets switch automatically after adding; ensure we land on
+        // the target chain regardless.
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: hexChainId }],
+        });
+        setState({ chainId });
+      } catch (addErr) {
+        const addError = toWalletError(addErr, "Failed to add chain");
+        setState({ error: addError });
+        throw addError;
+      }
     }
   };
 
